@@ -26,3 +26,17 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads_lifecycle" {
     }
   }
 }
+
+############################################
+# SQS Queues
+############################################
+
+resource "aws_sqs_queue" "image_processing_requests" {
+  name                      = "${var.app_name}-image-processing-requests"
+  visibility_timeout_seconds = 300
+}
+
+resource "aws_sqs_queue" "image_processing_results" {
+  name                      = "${var.app_name}-image-processing-results"
+  visibility_timeout_seconds = 300
+}
