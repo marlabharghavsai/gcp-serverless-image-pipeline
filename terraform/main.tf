@@ -63,6 +63,24 @@ resource "aws_iam_role" "lambda_role" {
 }
 
 ############################################
+# API Key (Secrets Manager)
+############################################
+
+resource "random_password" "api_key" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "api_key_secret" {
+  name = "${var.app_name}-api-key"
+}
+
+resource "aws_secretsmanager_secret_version" "api_key_value" {
+  secret_id     = aws_secretsmanager_secret.api_key_secret.id
+  secret_string = random_password.api_key.result
+}
+
+############################################
 # IAM Policy (Least Privilege)
 ############################################
 
@@ -110,6 +128,15 @@ resource "aws_iam_policy" "lambda_policy" {
           aws_sqs_queue.image_processing_requests.arn,
           aws_sqs_queue.image_processing_results.arn
         ]
+      },
+
+      # Secrets Manager Access (API Key) — FIXED
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = "${aws_secretsmanager_secret.api_key_secret.arn}*"
       }
     ]
   })
