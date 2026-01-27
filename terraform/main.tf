@@ -208,3 +208,29 @@ resource "aws_lambda_event_source_mapping" "process_image_sqs" {
   batch_size       = 1
   enabled          = true
 }
+
+
+############################################
+# log-notification Lambda Function
+############################################
+
+resource "aws_lambda_function" "log_notification" {
+  function_name = "${var.app_name}-log-notification"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "app.lambda_handler"
+  runtime       = "python3.11"
+
+  filename         = "${path.module}/../functions/log_notification.zip"
+  source_code_hash = filebase64sha256("${path.module}/../functions/log_notification.zip")
+}
+
+############################################
+# SQS Trigger for log-notification Lambda
+############################################
+
+resource "aws_lambda_event_source_mapping" "log_notification_sqs" {
+  event_source_arn = aws_sqs_queue.image_processing_results.arn
+  function_name    = aws_lambda_function.log_notification.arn
+  batch_size       = 1
+  enabled          = true
+}
