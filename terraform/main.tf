@@ -172,3 +172,39 @@ resource "aws_lambda_function" "upload_image" {
     }
   }
 }
+
+############################################
+# process-image Lambda Function
+############################################
+
+resource "aws_lambda_function" "process_image" {
+  function_name = "${var.app_name}-process-image"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "app.lambda_handler"
+  runtime       = "python3.11"
+
+  timeout      = 30
+  memory_size = 512
+
+  filename         = "${path.module}/../functions/process_image.zip"
+  source_code_hash = filebase64sha256("${path.module}/../functions/process_image.zip")
+
+  environment {
+    variables = {
+      UPLOADS_BUCKET    = aws_s3_bucket.uploads.bucket
+      PROCESSED_BUCKET  = aws_s3_bucket.processed.bucket
+      RESULTS_QUEUE_URL = aws_sqs_queue.image_processing_results.url
+    }
+  }
+}
+
+############################################
+# SQS Trigger for process-image Lambda
+############################################
+
+resource "aws_lambda_event_source_mapping" "process_image_sqs" {
+  event_source_arn = aws_sqs_queue.image_processing_requests.arn
+  function_name    = aws_lambda_function.process_image.arn
+  batch_size       = 1
+  enabled          = true
+}
