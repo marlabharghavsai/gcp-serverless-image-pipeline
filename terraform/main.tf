@@ -150,3 +150,25 @@ resource "aws_iam_role_policy_attachment" "lambda_attach" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
+
+
+############################################
+# upload-image Lambda Function
+############################################
+
+resource "aws_lambda_function" "upload_image" {
+  function_name = "${var.app_name}-upload-image"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "app.lambda_handler"
+  runtime       = "python3.11"
+
+  filename         = "${path.module}/../functions/upload_image.zip"
+  source_code_hash = filebase64sha256("${path.module}/../functions/upload_image.zip")
+
+  environment {
+    variables = {
+      UPLOADS_BUCKET       = aws_s3_bucket.uploads.bucket
+      REQUESTS_QUEUE_URL  = aws_sqs_queue.image_processing_requests.url
+    }
+  }
+}
