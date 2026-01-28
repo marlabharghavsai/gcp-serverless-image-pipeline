@@ -13,34 +13,32 @@ REQUESTS_QUEUE_URL = os.environ["REQUESTS_QUEUE_URL"]
 
 def lambda_handler(event, context):
     try:
-        # API Gateway sends base64-encoded body
-        if event.get("isBase64Encoded"):
-            body = base64.b64decode(event["body"])
-        else:
-            return response(400, "Expected base64 encoded body")
+        # API Gateway ALWAYS sends binary as base64
+        if "body" not in event or not event.get("isBase64Encoded", False):
+            return response(400, "Binary body must be base64 encoded")
 
-        # Generate unique filename
+        # Decode image bytes
+        image_bytes = base64.b64decode(event["body"])
+
         image_id = str(uuid.uuid4())
-        object_key = f"{image_id}.jpg"
+        object_key = f"{image_id}.png"
 
         # Upload to S3
         s3.put_object(
             Bucket=UPLOADS_BUCKET,
             Key=object_key,
-            Body=body,
-            ContentType="image/jpeg"
+            Body=image_bytes,
+            ContentType="image/png"
         )
 
         # Send message to SQS
-        message = {
-            "bucket": UPLOADS_BUCKET,
-            "key": object_key,
-            "image_id": image_id
-        }
-
         sqs.send_message(
             QueueUrl=REQUESTS_QUEUE_URL,
-            MessageBody=json.dumps(message)
+            MessageBody=json.dumps({
+                "bucket": UPLOADS_BUCKET,
+                "key": object_key,
+                "image_id": image_id
+            })
         )
 
         return response(202, {

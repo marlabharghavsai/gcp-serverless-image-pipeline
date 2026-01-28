@@ -1,8 +1,8 @@
 import json
 import os
 import boto3
-from io import BytesIO
 from PIL import Image
+from io import BytesIO
 
 s3 = boto3.client("s3")
 sqs = boto3.client("sqs")
@@ -20,38 +20,32 @@ def lambda_handler(event, context):
         key = message["key"]
         image_id = message["image_id"]
 
-        # Download image from S3
-        response = s3.get_object(Bucket=bucket, Key=key)
-        image_bytes = response["Body"].read()
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        image_bytes = obj["Body"].read()
 
-        # Convert to grayscale
-        image = Image.open(BytesIO(image_bytes)).convert("L")
+        image = Image.open(BytesIO(image_bytes))
+        image = image.resize((256, 256))
 
-        output_buffer = BytesIO()
-        image.save(output_buffer, format="JPEG")
-        output_buffer.seek(0)
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        buffer.seek(0)
 
-        processed_key = f"processed-{key}"
+        processed_key = f"processed/{image_id}.png"
 
-        # Upload processed image
         s3.put_object(
             Bucket=PROCESSED_BUCKET,
             Key=processed_key,
-            Body=output_buffer,
-            ContentType="image/jpeg"
+            Body=buffer,
+            ContentType="image/png"
         )
-
-        # Send completion message
-        result_message = {
-            "image_id": image_id,
-            "original": f"s3://{bucket}/{key}",
-            "processed": f"s3://{PROCESSED_BUCKET}/{processed_key}",
-            "status": "SUCCESS"
-        }
 
         sqs.send_message(
             QueueUrl=RESULTS_QUEUE_URL,
-            MessageBody=json.dumps(result_message)
+            MessageBody=json.dumps({
+                "image_id": image_id,
+                "status": "processed",
+                "output_key": processed_key
+            })
         )
 
-    return {"status": "done"}
+    return {"status": "ok"}

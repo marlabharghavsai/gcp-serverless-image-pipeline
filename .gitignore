@@ -1,6 +1,39 @@
+# -----------------------
+# Terraform
+# -----------------------
 .terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
+*.backup
+
+# -----------------------
+# Environment / Secrets
+# -----------------------
 .env
-node_modules/
+
+# -----------------------
+# Python
+# -----------------------
 __pycache__/
+*.pyc
+
+# -----------------------
+# Node (if any tooling)
+# -----------------------
+node_modules/
+
+# -----------------------
+# AWS / Build Artifacts
+# -----------------------
+pillow-layer/
+architecture-diagram.png
+upload_image.zip
+
+# -----------------------
+# OS / Editor
+# -----------------------
+.DS_Store
+*.log
+
+*.zip
+pillow-layer/
