@@ -12,14 +12,17 @@ High-Level Flow
 - Notification Lambda logs the processing completion
 
 ## AWS Service Mapping (GCP → AWS)
-GCP Service	AWS Equivalent
-Cloud Functions	AWS Lambda
-Cloud Storage (GCS)	Amazon S3
-Pub/Sub	Amazon SQS
-API Gateway	Amazon API Gateway
-IAM Service Account	IAM Role
-Secret Manager	API Gateway API Key
-Cloud Logging	CloudWatch Logs
+
+| GCP Service                | AWS Equivalent               |
+|----------------------------|------------------------------|
+| Cloud Functions            | AWS Lambda                   |
+| Cloud Storage (GCS)        | Amazon S3                    |
+| Pub/Sub                    | Amazon SQS                   |
+| API Gateway                | Amazon API Gateway           |
+| IAM Service Account        | IAM Role                     |
+| Secret Manager             | API Gateway API Key          |
+| Cloud Logging              | Amazon CloudWatch Logs       |
+
 
 ## Components
 ### API Gateway
@@ -166,3 +169,14 @@ The submission.json file is populated as required:
   "api_key": "e2RKoI58oa8m1b0XKZJK68jC8gH8jW5s6zoW8qGy"
 }
 ```
+
+## Why AWS Was Used Instead of GCP
+
+Although the original project specification referenced Google Cloud Platform (GCP), explicit permission was granted by the instructor (via the official course Discord channel) to complete the assignment using Amazon Web Services (AWS).
+
+The primary reason for this decision was GCP billing account constraints.
+At the time of implementation, enabling a GCP billing account required an initial upfront charge (~₹1000 INR) to activate paid services. Due to personal financial limitations, it was not feasible to complete the project using GCP within the required timeframe.
+
+After raising this concern with the course community and instructors, guidance was provided to proceed with AWS and clearly document the platform change in the project submission.
+
+Importantly, the core architectural intent of the assignment—a multi-stage, event-driven, serverless pipeline implemented using Infrastructure as Code—has been fully preserved and correctly implemented using AWS services.
